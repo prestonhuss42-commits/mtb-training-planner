@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MTB Training Planner</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 20px 25px;
+      background: #f7f9fc;
+      color: #222;
+      line-height: 1.5;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #007acc;
+      margin-bottom: 25px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    select, input[type=number] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1.8px solid #bbb;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    select:focus, input[type=number]:focus {
+      outline: none;
+      border-color: #007acc;
+      box-shadow: 0 0 6px #a7d0f9;
+    }
+
+    .days-group {
+      margin-top: 20px;
+      background: #eaf3fc;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border: 1px solid #c3d5f6;
+    }
+
+    .days-group strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #003f7d;
+      font-size: 1.1rem;
+    }
+
+    .days-group label {
+      display: inline-block;
+      margin-right: 16px;
+      font-weight: 500;
+      color: #00509e;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .days-group input[type="checkbox"] {
+      margin-right: 6px;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+
+    button#generateBtn {
+      display: block;
+      width: 100%;
+      margin: 30px 0 10px;
+      padding: 14px 0;
+      background-color: #007acc;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,122,204,0.4);
+    }
+
+    button#generateBtn:hover {
+      background-color: #005ea2;
+      box-shadow: 0 6px 12px rgba(0,94,162,0.5);
+    }
+
+    #mileageFeedback {
+      margin-top: 18px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-align: center;
+      color: #00509e;
+      min-height: 1.3em;
+      user-select: none;
+    }
+
+    table#scheduleTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    table#scheduleTable thead tr {
+      background-color: #007acc;
+      color: white;
+      font-weight: 600;
+    }
+
+    table#scheduleTable th,
+    table#scheduleTable td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e0e7f1;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    table#scheduleTable tbody tr:hover {
+      background-color: #d9eaff;
+      cursor: default;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 500px) {
+      body {
+        padding: 15px 10px;
+      }
+      .days-group label {
+        margin-right: 10px;
+        font-size: 0.9rem;
+      }
+      button#generateBtn {
+        font-size: 1rem;
+        padding: 12px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>MTB Training Planner</h1>
+
+  <label>
+    Discipline:
+    <select id="discipline">
+      <option value="xc">XC</option>
+      <option value="enduro">Enduro</option>
+      <option value="dh">Downhill</option>
+    </select>
+  </label>
+
+  <label>
+    Goal:
+    <select id="goal">
+      <option value="fitness">Stay Fit / Have Fun</option>
+      <option value="race">Race Focused</option>
+    </select>
+  </label>
+
+  <label>
+    Training Phase / Season:
+    <select id="season">
+      <option value="offSeason">Off-season</option>
+      <option value="preSeason">Pre-season</option>
+      <option value="raceSeason">Race season</option>
+      <option value="postSeason">Post-season</option>
+    </select>
+  </label>
+
+  <label>
+    Days per week you want to train:
+    <input type="number" id="daysPerWeek" min="1" max="7" value="5" />
+  </label>
+
+  <label>
+    Miles per day you want to ride:
+    <input type="number" id="milesPerDay" min="0" step="0.1" value="5" />
+  </label>
+
+  <div class="days-group">
+    <strong>Select days you can ride trails:</strong><br/>
+    <label><input type="checkbox" class="trail-day" value="Mon" checked /> Mon</label>
+    <label><input type="checkbox" class="trail-day" value="Tue" checked /> Tue</label>
+    <label><input type="checkbox" class="trail-day" value="Wed" checked /> Wed</label>
+    <label><input type="checkbox" class="trail-day" value="Thu" checked /> Thu</label>
+    <label><input type="checkbox" class="trail-day" value="Fri" checked /> Fri</label>
+    <label><input type="checkbox" class="trail-day" value="Sat" checked /> Sat</label>
+    <label><input type="checkbox" class="trail-day" value="Sun" checked /> Sun</label>
+  </div>
+
+  <div class="days-group">
+    <strong>Select days you must ride road/trainer:</strong><br/>
+    <label><input type="checkbox" class="road-day" value="Mon" /> Mon</label>
+    <label><input type="checkbox" class="road-day" value="Tue" /> Tue</label>
+    <label><input type="checkbox" class="road-day" value="Wed" /> Wed</label>
+    <label><input type="checkbox" class="road-day" value="Thu" /> Thu</label>
+    <label><input type="checkbox" class="road-day" value="Fri" /> Fri</label>
+    <label><input type="checkbox" class="road-day" value="Sat" /> Sat</label>
+    <label><input type="checkbox" class="road-day" value="Sun" /> Sun</label>
+  </div>
+
+  <button id="generateBtn">Generate Schedule</button>
+
+  <div id="mileageFeedback"></div>
+
+  <table id="scheduleTable" style="display:none;">
+    <thead>
+      <tr><th>Day</th><th>Ride Type</th><th>Recommendation</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const plans = {
+      xc: {
+        fitness: {
+          offSeason: {
+            trail: "60 min easy endurance on trails",
+            road: "60-90 min Zone 2 endurance on road or trainer",
+            workout: "Core + mobility work",
+          },
+          preSeason: {
+            trail: "Intervals: 3x8 min hard efforts on trails",
+            road: "Threshold intervals on trainer (2x15 min)",
+            workout: "Leg strength + VO2 max",
+          },
+          raceSeason: {
+            trail: "Race pace intervals on trails, skills practice",
+            road: "Active recovery ride 45 min",
+            workout: "Race-specific strength & explosive power",
+          },
+          postSeason: {
+            trail: "Easy trail rides, recovery focus",
+            road: "Light road rides or rest",
+            workout: "Mobility and rest",
+          },
+        },
+        race: {
+          offSeason: {
+            trail: "Light technical skills and recovery rides",
+            road: "Low intensity endurance rides",
+            workout: "Mobility and maintenance",
+          },
+          preSeason: {
+            trail: "High intensity intervals and race simulations",
+            road: "Threshold and VO2 max intervals",
+            workout: "Strength and explosive power",
+          },
+          raceSeason: {
+            trail: "Race pace efforts and tapering",
+            road: "Active recovery rides",
+            workout: "Power maintenance and race prep",
+          },
+          postSeason: {
+            trail: "Recovery rides and easy technical work",
+            road: "Light rides or rest",
+            workout: "Mobility and rest",
+          },
+        },
+      },
+      enduro: {
+        fitness: {
+          offSeason: {
+            trail: "1 hr mixed climbing + descending on trails",
+            road: "1 hr steady road or trainer ride",
+            workout: "Leg endurance and core",
+          },
+          preSeason: {
+            trail: "Race simulation efforts on trails",
+            road: "Threshold intervals on trainer",
+            workout: "Strength + fatigue resistance",
+          },
+          raceSeason: {
+            trail: "Race pace stages + skills on trails",
+            road: "Recovery rides on road",
+            workout: "Explosive power and reaction time",
+          },
+          postSeason: {
+            trail: "Easy trail rides",
+            road: "Light road rides or rest",
+            workout: "Mobility and rest",
+          },
+        },
+        race: {
+          offSeason: {
+            trail: "Technical skill drills and endurance rides",
+            road: "Easy recovery rides",
+            workout: "Core and balance",
+          },
+          preSeason: {
+            trail: "Race simulations and timed stages",
+            road: "Intervals and tempo rides",
+            workout: "Strength and power",
+          },
+          raceSeason: {
+            trail: "Race pace stage efforts",
+            road: "Recovery and endurance rides",
+            workout: "Explosiveness and recovery",
+          },
+          postSeason: {
+            trail: "Recovery focused easy rides",
+            road: "Rest or light rides",
+            workout: "Mobility and maintenance",
+          },
+        },
+      },
+      dh: {
+        fitness: {
+          offSeason: {
+            trail: "Shuttle laps focusing on skills",
+            road: "Core + grip strength training off-bike",
+            workout: "Core + grip strength",
+          },
+          preSeason: {
+            trail: "Timed downhill runs, technical practice",
+            road: "Light recovery rides or rest",
+            workout: "Explosive power and reaction",
+          },
+          raceSeason: {
+            trail: "Race pace downhill runs + recovery",
+            road: "Active recovery rides",
+            workout: "Power and reaction drills",
+          },
+          postSeason: {
+            trail: "Easy skill-focused rides",
+            road: "Rest or light cross training",
+            workout: "Mobility and rest",
+          },
+        },
+        race: {
+          offSeason: {
+            trail: "Skill focus and light rides",
+            road: "Core and grip strength training",
+            workout: "Mobility and rest",
+          },
+          preSeason: {
+            trail: "Timed downhill runs and skills",
+            road: "Light recovery rides",
+            workout: "Explosive power and reaction",
+          },
+          raceSeason: {
+            trail: "Race pace downhill runs",
+            road: "Active recovery",
+            workout: "Power and reaction drills",
+          },
+          postSeason: {
+            trail: "Easy rides and skills practice",
+            road: "Rest or cross training",
+            workout: "Mobility and rest",
+          },
+        },
+      }
+    };
+
+    const mileageRanges = {
+      xc: {
+        fitness: { min: 3, max: 8 },
+        race: { min: 6, max: 15 },
+      },
+      enduro: {
+        fitness: { min: 4, max: 10 },
+        race: { min: 7, max: 18 },
+      },
+      dh: {
+        fitness: { min: 2, max: 5 },
+        race: { min: 3, max: 7 },
+      }
+    };
+
+    function getSelectedDays(className) {
+      return Array.from(document.querySelectorAll(`input.${className}:checked`)).map(el => el.value);
+    }
+
+    function getMileageFeedback(discipline, goal, miles) {
+      const range = mileageRanges[discipline]?.[goal];
+      if (!range) return "Mileage feedback not available for this selection.";
+
+      if (miles < range.min) {
+        return `At ${miles} miles/day, your mileage is Low for ${discipline.toUpperCase()} ${goal === 'race' ? 'Race' : 'Fitness'}. Consider increasing for better results.`;
+      } else if (miles > range.max) {
+        return `At ${miles} miles/day, your mileage is High for ${discipline.toUpperCase()} ${goal === 'race' ? 'Race' : 'Fitness'}. Make sure to allow for recovery!`;
+      } else {
+        return `At ${miles} miles/day, your mileage is Good for ${discipline.toUpperCase()} ${goal === 'race' ? 'Race' : 'Fitness'}. Solid training volume!`;
+      }
+    }
+
+    function generateSchedule() {
+      const discipline = document.getElementById('discipline').value;
+      const goal = document.getElementById('goal').value;
+      const season = document.getElementById('season').value;
+      const daysPerWeek = parseInt(document.getElementById('daysPerWeek').value, 10);
+      const milesPerDay = parseFloat(document.getElementById('milesPerDay').value);
+      const trailDays = getSelectedDays('trail-day');
+      const roadDays = getSelectedDays('road-day');
+
+      const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      let schedule = [];
+
+      for (let day of DAYS) {
+        if (trailDays.includes(day)) {
+          schedule.push({
+            day,
+            type: "Trail Ride",
+            recommendation: (plans[discipline]?.[goal]?.[season]?.trail
+              || plans[discipline]?.['fitness']?.[season]?.trail
+              || "No plan available")
+          });
+        } else if (roadDays.includes(day)) {
+          schedule.push({
+            day,
+            type: "Road/Trainer Ride",
+            recommendation: (plans[discipline]?.[goal]?.[season]?.road
+              || plans[discipline]?.['fitness']?.[season]?.road
+              || "No plan available")
+          });
+        } else {
+          schedule.push({
+            day,
+            type: "Rest/Off",
+            recommendation: "Rest or light mobility"
+          });
+        }
+      }
+
+      return { schedule: schedule.slice(0, daysPerWeek), milesPerDay, discipline, goal };
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      try {
+        const { schedule, milesPerDay, discipline, goal } = generateSchedule();
+        const tbody = document.querySelector('#scheduleTable tbody');
+        tbody.innerHTML = '';
+        for (let item of schedule) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${item.day}</td><td>${item.type}</td><td>${item.recommendation}</td>`;
+          tbody.appendChild(row);
+        }
+        document.getElementById('scheduleTable').style.display = 'table';
+
+        // Show mileage feedback
+        const feedback = getMileageFeedback(discipline, goal, milesPerDay);
+        const feedbackDiv = document.getElementById('mileageFeedback');
+        feedbackDiv.textContent = feedback;
+
+      } catch (err) {
+        alert('Error generating schedule: ' + err.message);
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
